@@ -21,6 +21,9 @@ if paramMap['usage']:
 listener_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 binding_address = ("127.0.0.1", listenPort)
 
+
 if __name__ == '__main__':
     while True:
         sock, address = listener_socket.accept()
+
+
