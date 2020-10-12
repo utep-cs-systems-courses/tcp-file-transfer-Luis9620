@@ -1,29 +1,64 @@
-import socket                   # Import socket module
+#! /usr/bin/env python3
 
-s = socket.socket()             # Create a socket object
-host = socket.gethostname()     # Get local machine name
-port = 8082                    # Reserve a port for your service.
-s.connect((host, port))
-print("Connected...")
-filename = input(str("Please enter a filename for the incoming file: "))
-file = open(filename, "wb")
-file_data = s.recv(1024)
-file.write(file_data)
-file.close()
-print("File received successfully.")
+import socket, sys, re
+import pathlib
+sys.path.append("../lib")
+import params
+from os import path
+from os.path import exists
 
-# with open('received_file', 'wb') as f:
-#     print('file opened')
-#     while True:
-#         print('receiving data...')
-#         data = s.recv(1024)
-#         print('data=%s', (data))
-#         if not data:
-#             break
-#         # write data to a file
-#         f.write(data)
-#
-# f.close()
-# print('Successfully get the file')
-# s.close()
-# print('connection closed')
+from framedSock import FramedSock
+
+switchesVarDefaults = (
+    (('-s', '--server'), 'server', "127.0.0.1:50001"),
+    (('-d', '--debug'), "debug", False),
+    (('-?', '--usage'), "usage", False),
+)
+
+progname = "testClient"
+paramMap = params.parseParams(switchesVarDefaults)
+
+server, usage, debug = paramMap["server"], paramMap["usage"], paramMap["debug"]
+
+if usage:
+    params.usage()
+
+try:
+    serverHost, serverPort = re.split(":", server)
+    serverPort = int(serverPort)
+except:
+    print("Cant parse Server: port from '%s'" % server)
+    sys.exit(1)
+
+addrFamily = socket.AF_INET
+socktype = socket.SOCK_STREAM
+addrPort = (serverHost, serverPort)
+
+sock = socket.socket(addrFamily, socktype)
+
+if sock is None:
+    print('could not open socket')
+    sys.exit(1)
+sock.connect(addrPort)
+
+fsock = FramedSock((sock, addrPort))
+for i in range(1):
+    filename = input("Enter the the filename of the file to be transfer: ")
+    if exists(filename):
+        file = open(filename, 'rb')
+        payload = file.read()
+        if len(payload) == 0:
+            print("Cant send empty file")
+            sys.exit(0)
+        else:
+            fsock.send(filename.encode(), debug)
+            file_exists = fsock.receive(debug).decode()
+            if file_exists == 'True':
+                print("That file all ready exist")
+                sys.exit(0)
+            else:
+                fsock.send(payload, debug)
+                print("Server:  ", fsock.receive(debug).decode())
+    else:
+        print("File '%s' dosnt exist." % filename)
+        print(pathlib.Path().absolute())

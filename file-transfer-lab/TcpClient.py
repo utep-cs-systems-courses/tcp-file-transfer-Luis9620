@@ -2,10 +2,11 @@
 import socket
 import sys
 import re
+sys.path.append("../lib")
 import params
 from os.path import exists
 from FramedSock import framed_send, framed_receive
-sys.path.append("../lib")
+
 
 switchesVarDefaults = (
     (('-s', '--server'), 'server', "127.0.0.1:50001"),
