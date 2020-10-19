@@ -1,4 +1,6 @@
 import re
+import os
+import sys
 
 def framedSend(sock, payload, debug=0):
      if debug: print("framedSend: sending %d byte message" % len(payload))
@@ -6,8 +8,23 @@ def framedSend(sock, payload, debug=0):
      while len(msg):
          nsent = sock.send(msg)
          msg = msg[nsent:]
-     
 rbuf = b""                      # static receive buffer
+
+def send_file(sock, file_name):
+    if(len(file_name) == 0):
+        print("Cannot send empty files")
+        sys.exit(0)
+    if os.path.exists(file_name):
+        with open(file_name, "rb") as f:
+            print("[+] Sending " + file_name +  "...")
+            data = f.read()
+            sock.sendall(data)
+            sock.close
+            print("[-] Disconnecting")
+            sys.exit(0)
+    else:
+        print("Not such file in the current directory: " + file_name)
+
 
 def framedReceive(sock, debug=0):
     global rbuf

@@ -3,10 +3,12 @@
 # Echo client program
 import socket, sys, re
 
-sys.path.append("../lib")       # for params
+sys.path.append("../file-transfer-lab/lib")       # for params
 import params
 
-from framedSock import framedSend, framedReceive
+from framedSock import framedSend, framedReceive, send_file
+
+
 
 
 switchesVarDefaults = (
@@ -56,12 +58,24 @@ if s is None:
     print('could not open socket')
     sys.exit(1)
 
+if __name__ == '__main__':
+    while True:
+        file_name = input("Please enter the name of the file to send: ")
+        file_name_encode = file_name.encode('utf-8')
+        s.sendall(file_name_encode)
+        send_check = True if (s.recv(1024)).decode('utf-8').lower() == "true" else False
+        if send_check:
+            print("The file already exist.")
+            sys.exit(0)
+        else:
+            send_file(s, file_name)
 
-print("sending hello world")
-framedSend(s, b"hello world", debug)
-print("received:", framedReceive(s, debug))
 
-print("sending hello world")
-framedSend(s, b"hello world", debug)
-print("received:", framedReceive(s, debug))
+# framedSend(s, b"hello world", debug)
+
+# print("received:", framedReceive(s, debug))
+#
+# print("sending hello world")
+# framedSend(s, b"hello world", debug)
+# print("received:", framedReceive(s, debug))
 
